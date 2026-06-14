@@ -1,0 +1,120 @@
+le but du script est de récupérer le code javascript (script-wifi.js)
+ainsi que le code c++ pour ESP32 pour gérer une page web (fournie ci-après)
+cela concerne la connexion wifi de la carte esp32.
+
+
+1 - On utilisera la librairie ESPAsyncWebServer
+
+2 - Le fichier index-wifi est dans  /balrob de la carte SD
+	les fichiers js sont dans /balrob/js
+	
+3 - Au démarrage, une autre page index.html se connecte à la carte SD,
+	charge les données du fichier wifi.json et programme mon esp32 en conséquence
+
+4 - Quand la page index-wifi s'affiche, on impose  le bouton radio sur le mode 	infrastructure.
+
+5 - Le bouton NEWSCAN scanne tous les réseaux wifi et les affiche dans 
+	select  id="wifiNetwork"
+
+6 - L'utilisateur choisi celui qui lui convient 
+
+7 - Le bouton SAVE CONFIG a deux roles
+
+		7.1 Il enregistre le ssid et le mot de pass sur la carte SD
+		7.2 il envoi ces 2 valeurs au programme C++
+		
+8 - Le bouton cancel revient à la page index.html
+
+9 - le fichier script s'appelle script-wifi.js et ets dans /balrob/js
+
+10 le code de la page HTML:
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration WiFi</title>
+   
+   <link rel="stylesheet" href="css/style-wifi.css" />
+    
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20Z" stroke="#6e8efb" stroke-width="2"/>
+                <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="#a777e3" stroke-width="2"/>
+                <path d="M12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z" fill="#6e8efb"/>
+            </svg>
+        </div>
+        
+        <h1>Configuration WiFi</h1>
+        
+        <p class="description">
+            Configurez les paramètres WiFi de votre ESP32. Entrez le nom du réseau (SSID) et le mot de passe pour vous connecter.
+        </p>
+		
+		
+		
+		
+		
+		
+		
+        
+        <form id="wifiForm">
+			<div class="form-group">
+                <label>Connexion Mode:</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="infrastructure" name="connectionMode" value="STA" checked>
+                        <label for="infrastructure">Infrastructure (Modem)     </label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="adhoc" name="connectionMode" value="AP">
+                        <label for="adhoc">Ad-hoc (ESP32)</label>
+                    </div>
+                </div>
+            </div>
+			
+			
+			
+			
+			
+	         <div class="form-group">
+				 <label for="wifiNetwork">WIFI LAN:</label>
+				
+					
+					<select  id="wifiNetwork" name="wifiNetwork" required>
+						 <option value="">Scanning ...</option>
+					 </select>
+					  <div class="button-group">
+							<button type="button" id="newScan" class="button">NEW SCAN</button
+					 </div>	  
+					
+             </div>
+			
+			
+			
+			
+
+            
+            <div class="form-group">
+                <label for="password">Mot de passe:</label>
+                <input type="password" id="password" name="password" required placeholder="Entrez le mot de passe">
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" id="OKButton" class="button">SAVE CONFIG </button>
+                <button type="button" id="cancelButton" class="button" onclick="window.location.href='index.html'">CANCEL<br>
+                </button>
+            </div>
+        </form>
+        
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+
+	    <script src="js/script-wifi.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+j'ai un esp32 programmé en c++. 
+Associé à lui une carte SD sur laquelle j'ai tous mes fichiers.
+Dans le répertoire /balrob j'ai index.html
+Dans le répertoire /balrob/js j'ai mon fichier javascript script.js
+Dans le répertoire /balrob/css j'ai mon fichier style.js
+Dans le répertoire /balrob/json j'ai mon fichier pid.json
+
+le fichier pid.json:
+{
+	"TAmin": 80,
+	"TAmax": 100,
+	"TAval": 90,
+	"KPmin": 10,
+	"KPmax": 50,
+	"KPval": 25,
+	"KImin": 2,
+	"KImax": 5,
+	"KIval": 3,
+	"KDmin": 1,
+	"KDmax": 3,
+	"KDval": 2
+}
+
+je voudrais un exemple minimum 
+
+1 - un fichier index.html avec de zones textes correspondant aux valeurs du fichier pid.json.
+
+	2 boutons un pour charger le fichier json (LOAD) et un pour sauver les zones texte (SAVE)
+	sur la carte SD sous forme d'un fichier pid.json situé dans /balrob/json.
+ 
+2 - le fichier script.js 
+
+3 - le code c++ documenté et avec des Serial.print aux endroits les plus utiles.
+
+4 - la librairie à utiliser est ESPAsyncWebServer
+
+5 - On utilisera la commande fetch pour communiquer entre le js et le c++

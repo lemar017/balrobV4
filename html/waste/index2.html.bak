@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration WiFi</title>
+
+	<link rel="stylesheet" href="css/style-MY.css" />
+	<link rel="stylesheet" href="css/style2.css" />
+ 
+</head>
+<body>
+    <div class="container">
+        <h1>Configuration WiFi</h1>
+        
+        <form id="wifiForm">
+            <!-- Mode de connexion -->
+            <div class="form-group">
+                <label>Mode de connexion :</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="infrastructure" name="connectionMode" value="infrastructure" checked>
+                        <label for="infrastructure">Infrastructure     (Modem)  </label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="adhoc" name="connectionMode" value="adhoc">
+                        <label for="adhoc">Ad-hoc   (ESP32)  </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des réseaux WiFi -->
+            <div class="form-group">
+                <label for="wifiNetwork">Réseau WiFi :</label>
+                <select id="wifiNetwork" name="wifiNetwork" required>
+                    <option value="">Chargement des réseaux...</option>
+                </select>
+                <button type="button" id="refreshNetworks"   class="button" cursor: pointer;">
+                    Actualiser
+                </button>
+            </div> 
+
+            <!-- Mot de passe -->
+            <div class="form-group">
+                <label for="password">Mot de passe :</label>
+                <input type="password" id="password" name="password" placeholder="Entrez le mot de passe du réseau">
+            </div>
+
+            <!-- Boutons -->
+            <div class="button-group">
+                <button type="button" onclick="window.location.href='index.html'" id="cancelButton" class="button">
+                    CANCEL
+                </button>
+                <button type="submit" id="saveonSDButton" class="button">
+                    Enregistrer la configuration
+                </button>
+            </div>
+        </form>
+
+        <!-- Loading indicator -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Enregistrement en cours...</p>
+        </div>
+
+        <!-- Message de statut -->
+        <div class="status-message" id="statusMessage"></div>
+    </div>
+
+    <script src="js/wifi-config.js"></script>
+    
+</body>
+</html>

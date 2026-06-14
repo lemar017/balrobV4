@@ -1,0 +1,78 @@
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  background-color:#ffffff;
+}
+
+.zone1 {
+  width: 900px;
+  height: 450px;
+  background-color: #ccc;
+  margin-left: 10px;
+
+}
+
+.zone2 {
+  width: 400px;
+  height: 450px;
+  background-color: #bbb;
+  margin-left: 10px;
+  margin-bottom:10px;
+  position: relative; /* Utilisation de la position relative pour positionner les images à l'intérieur */
+}
+
+@media screen and (max-width: 900px)
+ {
+  .container {
+	
+    flex-direction: column;
+  }
+  
+  .zone1, {
+    width: 100%;
+    margin-right: 10;
+  }
+
+  .zone2 {
+	width: 400px; 
+    height: 400px; 
+	// Ajuster la hauteur de la zone 2 en dessous de la zone 1 
+	margin-left:10px;
+	margin-top: 10px;
+  }
+}
+
+.image-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  // Centrage vertical et horizontal
+  transform: translate(-50%, -50%); 
+}
+
+.image1 {
+  width: 200px;
+  height: 200px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.image2 {
+  width: 100px;
+  height: 100px;
+  position: absolute;
+  // Calcul de la position pour centrer l'image plus petite par rapport à l'image plus grande 
+  // Calcul de la position pour centrer l'image plus petite par rapport à l'image plus grande
+  //top: -calc(50% - 50px); 
+  //left: -calc(50% - 50px); 
+  top:-50px;
+  left:-50px;
+}
+
+
+
+
+
+

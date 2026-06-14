@@ -1,0 +1,64 @@
+
+.inline-cell .pos-container {
+  display: flex;
+  align-items: center;
+  width:90%;
+  gap: 0.5em;
+}
+.inline-cell label {
+  white-space: nowrap;
+}
+.inline-cell input[type="text"] {
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* ...existing code... */
+
+#button {
+  padding: 12px 15px;       /* même "coussin" interne */
+  font-size: 16px;          /* même taille de texte */
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box ;   /* largeur/hauteur calculées pareil */
+}
+
+.button {
+  flex: 1;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+        #chooseWIFI {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #chooseWIFI:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        #chooseFILTER {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #chooseFILTER:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        #save2SD {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #saveSD:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }

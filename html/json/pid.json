@@ -1,0 +1,14 @@
+{
+	"TAmin": 80,
+	"TAmax": 100,
+	"TAval": 90,
+	"KPmin": 10,
+	"KPmax": 50,
+	"KPval": 25,
+	"KImin": 2,
+	"KImax": 5,
+	"KIval": 3,
+	"KDmin": 1,
+	"KDmax": 3,
+	"KDval": 2
+}

@@ -1,0 +1,89 @@
+/* Conteneur principal */
+.container {
+  display: flex;
+  flex-direction: column; /* empile zone1, zone2, coordonnees verticalement */
+  align-items: center;    /* centre horizontalement tous les enfants */
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+  background-color: #fefefe;
+}
+
+/* Zone 1 : tableau de réglages */
+.zone1 {
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 30px;
+}
+
+/* Zone 2 : joystick */
+.zone2 {
+  width: 300px;
+  height: 300px;
+  background-color: #e74c3c;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+/* Base du joystick */
+.joystick-base {
+  width: 200px;
+  height: 200px;
+  background-image: url('images/joystick-base.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+/* Boule du joystick */
+.joystick-ball {
+  width: 50px;
+  height: 50px;
+  background-image: url('images/joystick-ball.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  cursor: move;
+  transition: box-shadow 0.3s ease;
+}
+
+.joystick-ball:hover {
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+/* Zone des coordonnées */
+.coordonnees {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 16px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.coordonnees input {
+  width: 60px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  text-align: center;
+}

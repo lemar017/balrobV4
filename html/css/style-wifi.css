@@ -1,0 +1,211 @@
+/*Nouveau Css */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        .description {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        
+	input[type="text"],
+	input[type="password"],
+	select#wifiNetwork {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+        
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #6e8efb;
+            outline: none;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+
+#wifiNetwork,
+button {
+  padding: 12px 15px;       /* même "coussin" interne */
+  font-size: 16px;          /* même taille de texte */
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box ;   /* largeur/hauteur calculées pareil */
+}
+        
+        .button {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+		 #newScan {
+            background-color: #4CAF50;
+            color: white;
+			}		
+
+        #SaveConfigButton {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        #SaveConfigButton:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        #cancelButton {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        #cancelButton:hover {
+            background-color: #d32f2f;
+            transform: translateY(-2px);
+        }
+
+        #newScanButton {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        #newScanButton:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+
+
+
+        
+        .status-message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .logo {
+            margin-bottom: 20px;
+        }
+        
+        .logo svg {
+            width: 80px;
+            height: 80px;
+        }
+
+/*Ancien css */
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        input[type="radio"] {
+            margin: 0;
+		select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }	
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+        }
+			        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Configuration</title>
+    <link rel="stylesheet" href="css/style-filter.css" /> 
+</head>
+<body>
+    <div class="container">
+        <h1>Filter Configuration</h1>
+        
+        <form id="filterForm">
+            <!-- Mode de connexion -->
+            <div class="form-group">
+            
+            <!-- Liste des Filtres -->
+            <div class="form-group">
+                <label >Choose Filter:</label>
+                <select id="filter" name="filter" required>
+                    <option value="MOYENNE">MOYENNE</option>
+                    <option value="EMA">EMA</option>
+                    <option value="COMPLEMENTAIRE">COMPLÉMENTAIRE</option>
+                    <option value="KALMAN">KALMAN</option>
+                </select>
+            </div> 
+
+            <!-- Intervalle (ms) -->
+            <div class="form-group">
+                <label>Interval (ms)</label>
+                <input type="number" id="interval" name="interval" required >
+            </div>
+
+            <!-- Boutons -->
+            <div class="button-group">
+                <button type="submit" id="OKButton" class="button">
+                    SAVE FILTER 
+                </button>
+                <button type="button" id="cancelButton" class="button">
+                    CANCEL
+                </button>
+            </div>
+        </form>
+        
+        <!-- Zone de message de statut (initialement cachée) -->
+        <div id="statusMessage" class="status-message" style="display: none;">
+             <p id="statusText"></p>
+            
+        </div>
+
+
+        
+        <!-- Loading indicator -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Enregistrement en cours...</p>
+        </div>
+    </div>
+
+    <script src="js/script-filter.js"></script>    
+</body>
+</html>

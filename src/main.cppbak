@@ -1,0 +1,496 @@
+#include <Arduino.h>
+//-----------------------Define------------------------------------
+
+#define AFFICHE_DATA_ACC_GYRO false
+#define AFFICHE_DATA_BINAIRE false
+#define AFFICHE_DATA_ONTIMER true
+#define AFFICHE_VALEURS_PID false
+#define AFFICHE_CONSIGNES_PID false
+#define AFFICHE_DATA_FILTREE false
+#define AFFICHE_EFFICACITE_FILTREE false
+#define AFFICHE_TILT_TARGET false
+#define QUATERNION false
+#define DEBUG false
+#define NODEVICE false
+
+//------------------For WEB and SD card-----------------------------
+#include <ArduinoJson.h>
+#include <WiFi.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include "FS.h"
+#include "SD.h"
+#include "SPI.h"
+#include <esp_timer.h>
+// #include "Ticker.h" //TIMER
+#include <MPU6050.h>
+//------------------MY----------------------------------------------
+#include <ModuleVAR-GLOB.h>
+#include <ImuFilter.h>
+#include <BalanceController.h>
+#include "Module-WIFI.h"
+#include "Module-SDCARD.h"
+#include <ConnexionWIFI.h>
+#include "TimingController.h" // ✨ NEW: Gestion centralisée des timers
+
+//------------------MOTOR--------------------------------------------
+// #include <Motor.h>
+#include <FastAccelStepper.h>
+#include "MotorDriver.h"
+// a safe ceiling for the speed in Hz (steps/sec)
+const uint32_t MAX_MOTOR_SPEED_HZ = 1200; // Réduit de 5000 à 1200 pour éviter le décrochage
+
+//-----------------------PID----------------------------------------
+#include <PID_v1.h>
+//-----------------------I2C-----------------------------------------
+#include <I2Cdev.h>
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+#include "Wire.h"
+#endif
+//*******************************************************************
+//                           DECLARATION VARIABLES
+//*******************************************************************
+MPU6050 mpu;
+
+// ✨ NEW: Gestionnaire de timing centralisé
+// Remplace: dernierPID, dernierLED, dernierAffichage, INTERVALLE_*
+TimingController timing(10000, 20000, 500000); // PID: 10ms, Display: 20ms, LED: 500ms
+bool etatLED = false;
+
+// moteur
+// FastAccelStepper* stepperG;
+// FastAccelStepper* stepperD;
+MotorDriver motors;
+ImuFilter imuFilter;
+BalanceController balanceController;
+
+//*******************************************************************
+//                           DECLARATION FONCTION
+//*******************************************************************
+
+#pragma region FonctionAffiche
+
+//*******************************************************************
+//                           TRACE DATAS
+//*******************************************************************
+
+void printData()
+{
+  Serial.println("");
+  Serial.println("");
+  Serial.print(accX);
+  Serial.print(",");
+  Serial.print(accY);
+  Serial.print(",");
+  Serial.print(accZ);
+  Serial.print(",");
+  Serial.print(gyroX);
+  Serial.print(",");
+  Serial.print(gyroY);
+  Serial.print(",");
+  Serial.println(gyroZ);
+  delay(10);
+}
+//-------------------------------------------------------------------
+void printDataOnTimer()
+{
+  // fichier dataOnTimer-V2
+  Serial.print(accAngle);
+  Serial.print(",");
+  Serial.print(gyroRate);
+  Serial.print(",");
+  Serial.print(gyroAngle);
+  Serial.print(",");
+  Serial.print(currentAngle);
+  Serial.print(",");
+  Serial.print(error);
+  Serial.print(",");
+  Serial.print(errorSum);
+  Serial.print(",");
+  Serial.print(targetAngle);
+  Serial.print(",");
+  Serial.print(P);
+  Serial.print(",");
+  Serial.print(I);
+  Serial.print(",");
+  Serial.print(D);
+  Serial.print(",");
+  Serial.print(motors.leftSpeed());
+  Serial.print(",");
+  Serial.print(motors.rightSpeed());
+  Serial.print(",");
+  Serial.print(motorPID);
+  Serial.print(",");
+  Serial.println(balanceController.telemetry().tiltRequest);
+}
+//-------------------------------------------------------------------
+void printDataBinaire()
+{
+  Serial.write((uint8_t)(accX >> 8));
+  Serial.write((uint8_t)(accX & 0xFF));
+  Serial.write((uint8_t)(accY >> 8));
+  Serial.write((uint8_t)(accY & 0xFF));
+  Serial.write((uint8_t)(accZ >> 8));
+  Serial.write((uint8_t)(accZ & 0xFF));
+  Serial.write((uint8_t)(gyroX >> 8));
+  Serial.write((uint8_t)(gyroX & 0xFF));
+  Serial.write((uint8_t)(gyroY >> 8));
+  Serial.write((uint8_t)(gyroY & 0xFF));
+  Serial.write((uint8_t)(gyroZ >> 8));
+  Serial.write((uint8_t)(gyroZ & 0xFF));
+}
+void printDataFiltree()
+{
+  Serial.print(accX_filtered);
+  Serial.print(",");
+  Serial.print(accY_filtered);
+  Serial.print(",");
+  Serial.print(accZ_filtered);
+  Serial.print(",");
+  Serial.print(gyroX_filtered);
+  Serial.print(",");
+  Serial.print(gyroY_filtered);
+  Serial.print(",");
+  Serial.println(gyroZ_filtered);
+}
+void efficaciteFiltre()
+{
+  Serial.print(accX);
+  Serial.print(",");
+  Serial.print(accX_filtered);
+  Serial.print(",");
+  Serial.print(accZ);
+  Serial.print(",");
+  Serial.print(accZ_filtered);
+  Serial.print(",");
+  Serial.print(gyroY);
+  Serial.print(",");
+  Serial.println(gyroY_filtered);
+}
+//-------------------------------------------------------------------
+void printConsignesPID()
+{
+  Serial.print(TA);
+  Serial.print(",");
+  Serial.print(KP);
+  Serial.print(",");
+  Serial.print(KI);
+  Serial.print(",");
+  Serial.println(KD);
+}
+//-------------------------------------------------------------------
+void printValeursPID()
+{
+
+  Serial.print(P);
+  Serial.print(",");
+  Serial.print(I);
+  Serial.print(",");
+  Serial.println(D);
+}
+
+#pragma endregion
+
+#pragma region Filtrage
+//--------------------------------------------------------------
+void applyFiltrage()
+{
+  // Lecture brute
+  ImuSample rawSample = {accX, accY, accZ, gyroX, gyroY, gyroZ};
+  accX_raw_fl = static_cast<float>(rawSample.accX);
+  accY_raw_fl = static_cast<float>(rawSample.accY);
+  accZ_raw_fl = static_cast<float>(rawSample.accZ);
+  gyroX_raw_fl = static_cast<float>(rawSample.gyroX);
+  gyroY_raw_fl = static_cast<float>(rawSample.gyroY);
+  gyroZ_raw_fl = static_cast<float>(rawSample.gyroZ);
+
+  imuFilter.setType(filtreActuel);
+  imuFilter.setIntervalMs(interval_ms);
+  FilteredImuSample filteredSample = imuFilter.update(rawSample);
+
+  accX_filtered = filteredSample.accX;
+  accY_filtered = filteredSample.accY;
+  accZ_filtered = filteredSample.accZ;
+  gyroX_filtered = filteredSample.gyroX;
+  gyroY_filtered = filteredSample.gyroY;
+  gyroZ_filtered = filteredSample.gyroZ;
+
+  // Affichage : brut, puis filtré
+  // Pour Tracé uniquement Mettre en commentaire en version finale
+  int16_t accXF2int, accYF2int, accZF2int, gyroXF2int, gyroYF2int, gyroZF2int;
+  accXF2int = static_cast<int16_t>(accX_filtered);
+  accYF2int = static_cast<int16_t>(accY_filtered);
+  accZF2int = static_cast<int16_t>(accZ_filtered);
+  gyroXF2int = static_cast<int16_t>(gyroX_filtered);
+  gyroYF2int = static_cast<int16_t>(gyroY_filtered);
+  gyroZF2int = static_cast<int16_t>(gyroZ_filtered);
+
+  // 6 data brutes
+  // Serial.printf("%d,%d,%d,%d,%d,%d\n", accX, accY, accZ, gyroX, gyroY, gyroYF2int);
+  // 6 data brutes  + 6 data Filtrées
+  //  Serial.printf("%d,%d,%d,%d,%d,%d\n", accX, accY, accZ, gyroX, gyroY, gyroZ);
+  // Serial.printf("%d,%d,%d,%d,%d,%d,", accX, accY, accZ, gyroX, gyroY, gyroZ);
+  // Serial.printf("%d,%d,%d,%d,%d,%d\n", accXF2int, accYF2int, accZF2int, gyroXF2int, gyroYF2int, gyroZF2int);
+  // delay(10);
+}
+#pragma endregion
+
+//******************************************************************
+//                            FONCTIONS
+//******************************************************************
+// void triggerPID()
+//{
+//  pidFlag = true; // On ne fait que signaler qu'il faut faire un traitement PID
+//}
+
+//--------------------------------------------------------------
+// void blinkLED()
+//{
+//  ledState = !ledState;
+//  digitalWrite(PIN_LED_OK, ledState); // Or use the correct pin number for your LED
+// Serial.print("LED State: ");
+// Serial.println(ledState ? "ON" : "OFF");
+//}
+
+//----------------Information sur ce que fait le programme------
+void infoProg()
+{
+  Serial.println("");
+  Serial.println("");
+  Serial.println("-----------------------------------------");
+  Serial.println("   CARTE ESP32 WROOM 32 DA MODULE");
+  Serial.println("   Programme Balancing Robot OP sur ESP32");
+  Serial.println("   COMMANDE PAR WIFI");
+  Serial.println("-----------------------------------------");
+  Serial.println("");
+  Serial.println("");
+  /*
+  LOG("");
+  LOG("");
+  LOG("-----------------------------------------");
+  LOG("   CARTE ESP32 WROOM 32 DA MODULE");
+  LOG("   Programme Balancing Robot OP sur ESP32");
+  LOG("   COMMANDE PAR WaiFai");
+  LOG("-----------------------------------------");
+  LOG("");
+  LOG("");
+  */
+}
+
+//--------------------------------------------------------------
+void offsetAccGyro() // valeurs du 19-10-2024 OK
+{
+  mpu.setXAccelOffset(1019);
+  mpu.setYAccelOffset(-518);
+  mpu.setZAccelOffset(8812);
+  mpu.setXGyroOffset(-425);
+  mpu.setYGyroOffset(105);
+  mpu.setZGyroOffset(-544);
+
+  Serial.println("-------Offset Acc et Gyro -------");
+  Serial.println("XAccelOffset = 1019");
+  Serial.println("YAccelOffset = -518");
+  Serial.println("ZAccelOffset = 8812");
+  Serial.println("XGyroOffset = -425");
+  Serial.println("YGyroOffset = -105");
+  Serial.println("ZGyroOffset = -544");
+  Serial.println("----------------------------------");
+}
+//--------------------------------------------------------------
+
+//--------------------------------------------------------------
+float calculPID(float dt, float Y)
+{
+  FilteredImuSample filteredSample = {
+      accX_filtered,
+      accY_filtered,
+      accZ_filtered,
+      gyroX_filtered,
+      gyroY_filtered,
+      gyroZ_filtered};
+  JoystickState joystick = {static_cast<float>(joyX), Y};
+  PidSettings settings = {TA, KP, KI, KD};
+
+  motorPID = balanceController.compute(dt, filteredSample, joystick, settings);
+  const BalanceTelemetry &telemetry = balanceController.telemetry();
+  accAngle = telemetry.accAngle;
+  gyroRate = telemetry.gyroRate;
+  gyroAngle = telemetry.gyroAngle;
+  currentAngle = telemetry.currentAngle;
+  targetAngle = telemetry.targetAngle;
+  error = telemetry.error;
+  errorSum = telemetry.errorSum;
+  P = telemetry.p;
+  I = telemetry.i;
+  D = telemetry.d;
+  prevAngle = currentAngle;
+
+  return motorPID;
+}
+// ------------------------gestion moteurs-----------------------
+void controlMotors(float PID, float X, float Y)
+{
+  // === 1. PID → vitesse ===
+  const float Kspeed = 25.0; // Réduit de 20.0 à 5.0 pour limiter la vitesse
+
+  float baseSpeed = PID * Kspeed;
+
+  // === 2. Rotation (joyX) ===
+  // float joy = X;
+
+  // Zone morte
+  if (abs(X) < 5)
+    X = 0;
+
+  float joyNorm = X / 100.0;
+
+  const float Krot = 500.0; // Réduit de 800.0 à 500.0 pour limiter la rotation
+
+  float rotation = joyNorm * Krot;
+
+  // === 3. Sécurité (option très utile) ===
+  float tilt = abs(currentAngle - targetAngle);
+  if (tilt > 6.0)
+  {
+    rotation *= 0.5;
+  }
+
+  // === 4. Différentiel ===
+  const float speedG = baseSpeed - rotation;
+  const float speedD = baseSpeed + rotation;
+
+  // === 5. Envoi à ta classe MotorDriver ===
+  /*
+   Serial.print("speedG: ");
+   Serial.print(speedG);
+   Serial.print(", speedD: ");
+   Serial.println(speedD);
+ */
+  motors.setSpeed(speedG, speedD);
+}
+
+//--------------------------------------------------------------
+
+//**************************************************************
+//                         SETUP
+//**************************************************************
+#pragma region setup
+void setup()
+{
+
+  //----------------------Com WIFI et Serveur WEB--------------------
+
+  Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT); // Or use the correct pin number for your LED
+  initSDCard();                 // Initialise la carte SD et affiche le type de carte
+  initWiFi();                   // Initialise le WIFI et affiche l'adresse IP du serveur ESP32
+
+  server.serveStatic("/", SD, "/balrob/");
+  receivePIDenTR(); // reception de TA,KP,KD,KI en TR(Temps réel) suite à modif Sliders
+  initServerWeb();  // On demande au serveur la page index.HTML
+  JSON2Client();    // lecture SD
+  JSON2Server();    // Ecriture SD
+  sendXYJoystick();
+  initVarPIDfromSD();
+  server.begin();
+  infoProg(); // Affiche ce que fait le programme mais une fois le serveur démarré affiche dans log HTML
+  //----------------------Timer-LED-PID--------------------------------
+  pinMode(PIN_LED_OK, OUTPUT);
+
+  //-----------------------I2C----------------------------------
+  //  join I2C bus (I2Cdev library doesn't do this automatically)
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+  Wire.begin();
+#elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
+  Fastwire::setup(400, true);
+#endif
+
+  //---------------------MPU6050-------------------------------------
+
+  Serial.println("Initializing I2C devices MPU6050...");
+  mpu.initialize();
+  Serial.println(mpu.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+
+  //----------------------?------------------------------
+  error = 0;
+  errorSum = 0;
+  tempsDebut = millis();
+  //---------------------Offset Acc et Gyro-------------------------
+  offsetAccGyro(); // Valeur des offsets à partir d'un programme indépendant
+  mpu.CalibrateAccel(6);
+  mpu.CalibrateGyro(6);
+  //----------------------Init Parametres moteur---------------------
+  // Initialisation du moteur de la bibliothèque
+
+  // iniMoteurs(); // Initialise les moteurs et configure les pins de direction
+  motors.begin(STEP_G, DIR_G, STEP_D, DIR_D, MAX_MOTOR_SPEED_HZ); // Initialise les moteurs avec les pins et une accélération de 1000 Hz/s
+}
+#pragma endregion
+//**************************************************************
+//                        LOOP
+//**************************************************************
+void loop()
+{
+  loopWiFi(); // Gestion asynchrone de la connexion WIFI
+
+  accX = mpu.getAccelerationX();
+  accY = mpu.getAccelerationY();
+  accZ = mpu.getAccelerationZ();
+  gyroX = mpu.getRotationX();
+  gyroY = mpu.getRotationY();
+  gyroZ = mpu.getRotationZ();
+
+  applyFiltrage(); // Applique le filtrage sur les valeurs lues
+
+  // ✨ NEW: Mise à jour centralisée du timing (à appeler UNE FOIS au début)
+  timing.update();
+
+  // 1. BOUCLE DE CONTRÔLE (Priorité haute)
+
+  // === PID (Temps réel) ===
+  if (timing.shouldExecutePID())
+  {
+    // ✨ NEW: Obtenir le delta time depuis TimingController
+    float vrai_dt = timing.getDeltaTimeSeconds();
+
+    // Calcul du PID et mise à jour des moteurs
+    myPID = calculPID(vrai_dt, joyY);
+    controlMotors(myPID, joyX, joyY);
+  }
+
+  // === LED de statut (500 ms) ===
+  // Sortie du bloc PID pour être totalement indépendante
+  if (timing.shouldToggleLED())
+  {
+    etatLED = !etatLED;
+    digitalWrite(PIN_LED_OK, etatLED);
+  }
+
+#pragma region cacheAffiche
+  // 2. BOUCLE D'AFFICHAGE (Plus lente pour ne pas saturer le WiFi)
+  if (timing.shouldDisplayData())
+  {
+#if AFFICHE_DATA_ACC_GYRO == true
+    printData();
+#endif
+#if AFFICHE_DATA_BINAIRE == true
+    printDataBinaire();
+#endif
+#if AFFICHE_DATA_ONTIMER == true
+    printDataOnTimer();
+#endif
+#if AFFICHE_DATA_FILTREE == true
+    printDataFiltree();
+#endif
+#if AFFICHE_EFFICACITE_FILTREE == true
+    efficaciteFiltre();
+#endif
+#if AFFICHE_CONSIGNES_PID == true
+    printConsignesPID();
+#endif
+#if AFFICHE_VALEURS_PID == true
+    printValeursPID();
+#endif
+  }
+#pragma endregion
+}

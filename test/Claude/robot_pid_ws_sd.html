@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BalRob — Contrôleur PID</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Courier New', monospace; background: #EEF3FA; padding: 16px; min-height: 100vh; }
+    .wrap { display: flex; flex-direction: column; gap: 10px; max-width: 1100px; margin: 0 auto; }
+    .panel { background: #fff; border: 1px solid #D3D1C7; border-radius: 12px; overflow: hidden; }
+    .panel-header { display: grid; grid-template-columns: 130px 90px 1fr 90px 90px; background: #378ADD; padding: 8px 12px; gap: 8px; }
+    .panel-header span { font-size: 11px; font-weight: 500; color: #E6F1FB; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; }
+    .panel-header span:first-child { text-align: left; }
+    .panel-header span:last-child  { text-align: right; }
+    .pid-row { display: grid; grid-template-columns: 130px 90px 1fr 90px 90px; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #E8EDF5; background: #fff; }
+    .pid-row:last-child { border-bottom: none; }
+    .pid-label { font-size: 13px; font-weight: 500; color: #185FA5; letter-spacing: 0.05em; }
+    .pid-input { border: 1px solid #B5D4F4; border-radius: 8px; padding: 5px 8px; font-size: 12px; font-family: 'Courier New', monospace; background: #F4F8FD; color: #0C447C; width: 100%; text-align: center; }
+    .pid-input:focus { outline: none; border-color: #378ADD; box-shadow: 0 0 0 2px #B5D4F455; }
+    input[type=range] { width: 100%; accent-color: #378ADD; cursor: pointer; }
+    .val-display { border: 1px solid #B5D4F4; border-radius: 8px; padding: 5px 8px; font-size: 12px; font-family: 'Courier New', monospace; background: #E6F1FB; color: #185FA5; width: 100%; text-align: center; font-weight: 500; }
+    .controls-row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; flex-wrap: wrap; background: #F4F8FD; border-top: 1px solid #D3E8F8; }
+    .btn { padding: 7px 16px; border-radius: 8px; font-size: 12px; font-family: 'Courier New', monospace; font-weight: 500; letter-spacing: 0.06em; cursor: pointer; border: none; transition: background 0.15s, transform 0.1s; text-transform: uppercase; }
+    .btn:active { transform: scale(0.97); }
+    .btn-blue    { background: #378ADD; color: #E6F1FB; }
+    .btn-blue:hover { background: #185FA5; }
+    .btn-outline { background: #fff; border: 1px solid #B5D4F4; color: #378ADD; }
+    .btn-outline:hover { background: #E6F1FB; }
+    .btn-save    { margin-left: auto; background: #185FA5; color: #E6F1FB; }
+    .btn-save:hover    { background: #0C447C; }
+    .btn-save:disabled { background: #B5D4F4; cursor: not-allowed; }
+    .pos-group  { display: flex; align-items: center; gap: 6px; margin-left: 4px; }
+    .pos-label  { font-size: 11px; color: #185FA5; letter-spacing: 0.06em; }
+    .pos-val    { border: 1px solid #B5D4F4; border-radius: 8px; padding: 5px 10px; font-size: 12px; font-family: 'Courier New', monospace; background: #E6F1FB; color: #185FA5; width: 70px; text-align: center; font-weight: 500; }
+    .bottom-row { display: grid; grid-template-columns: 240px 1fr; gap: 10px; }
+    .joystick-panel { background: #fff; border: 1px solid #D3D1C7; border-radius: 12px; display: flex; flex-direction: column; align-items: center; padding: 14px 12px; gap: 10px; }
+    .joy-title  { font-size: 10px; color: #888780; letter-spacing: 0.08em; text-transform: uppercase; align-self: flex-start; }
+    canvas#joystick { display: block; cursor: grab; touch-action: none; }
+    canvas#joystick:active { cursor: grabbing; }
+    .joy-coords { display: flex; gap: 16px; }
+    .joy-coord  { font-size: 11px; color: #5F5E5A; font-family: 'Courier New', monospace; }
+    .joy-coord span { color: #185FA5; font-weight: 500; min-width: 28px; display: inline-block; }
+    .terminal-panel { background: #F4F8FD; border: 1px solid #B5D4F4; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
+    .term-header { display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: #E6F1FB; border-bottom: 1px solid #B5D4F4; }
+    .term-dot   { width: 8px; height: 8px; border-radius: 50%; }
+    .term-title { font-size: 11px; color: #185FA5; letter-spacing: 0.08em; flex: 1; font-weight: 500; }
+    .term-body  { flex: 1; padding: 10px 14px; overflow-y: auto; height: 195px; display: flex; flex-direction: column; gap: 2px; background: #F9FBFE; }
+    .term-line  { font-size: 12px; font-family: 'Courier New', monospace; line-height: 1.6; display: flex; gap: 10px; }
+    .term-time  { color: #85B7EB; min-width: 70px; }
+    .term-msg   { color: #0C447C; }
+    .term-msg.warn { color: #BA7517; }
+    .term-msg.err  { color: #A32D2D; }
+    .term-msg.ok   { color: #3B6D11; }
+    .term-cursor { display: inline-block; width: 7px; height: 13px; background: #378ADD; vertical-align: middle; animation: blink 1s step-end infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .ws-badge { font-size: 10px; padding: 2px 8px; border-radius: 99px; font-weight: 500; letter-spacing: 0.06em; }
+    .ws-badge.on   { background: #EAF3DE; color: #3B6D11; }
+    .ws-badge.off  { background: #FCEBEB; color: #A32D2D; }
+    .ws-badge.connecting { background: #FAEEDA; color: #854F0B; }
+    @media (max-width: 640px) {
+      .panel-header, .pid-row { grid-template-columns: 80px 70px 1fr 70px 70px; }
+      .bottom-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── Tableau PID ── -->
+  <div class="panel">
+    <div class="panel-header">
+      <span>Parameter</span><span>Min</span><span>Slider</span><span>Max</span><span>Value</span>
+    </div>
+    <div id="pid-rows"></div>
+    <div class="controls-row">
+      <span class="ws-badge off" id="ws-badge">WIFI OFF</span>
+      <button class="btn btn-outline" onclick="applyFilter()">FILTER</button>
+      <div class="pos-group">
+        <span class="pos-label">posX =</span>
+        <div class="pos-val" id="posX">0</div>
+      </div>
+      <div class="pos-group">
+        <span class="pos-label">posY =</span>
+        <div class="pos-val" id="posY">0</div>
+      </div>
+      <button class="btn btn-save" id="btn-save" onclick="saveToSD()" disabled>SAVE on SD</button>
+    </div>
+  </div>
+
+  <!-- ── Joystick + Terminal ── -->
+  <div class="bottom-row">
+    <div class="joystick-panel">
+      <span class="joy-title">Joystick — déplacement</span>
+      <canvas id="joystick" width="180" height="180"></canvas>
+      <div class="joy-coords">
+        <div class="joy-coord">X: <span id="jx">0</span></div>
+        <div class="joy-coord">Y: <span id="jy">0</span></div>
+        <div class="joy-coord"><span id="jdir" style="min-width:48px">STOP</span></div>
+      </div>
+    </div>
+
+    <div class="terminal-panel">
+      <div class="term-header">
+        <div class="term-dot" style="background:#639922"></div>
+        <div class="term-dot" style="background:#BA7517"></div>
+        <div class="term-dot" style="background:#A32D2D"></div>
+        <span class="term-title">Terminal série — ESP32</span>
+        <span style="font-size:10px;color:#378ADD;opacity:0.8;">115200 baud</span>
+      </div>
+      <div class="term-body" id="terminal">
+        <div class="term-line">
+          <span class="term-time" id="tc"></span>
+          <span class="term-msg" id="tm"><span class="term-cursor"></span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────
+// Paramètres PID par défaut (écrasés par PID.json au chargement)
+// ─────────────────────────────────────────────────────────
+const params = [
+  { id:'TA', min:80,  max:100, val:90,  step:1    },
+  { id:'KP', min:10,  max:50,  val:25,  step:0.1  },
+  { id:'KI', min:2,   max:5,   val:3,   step:0.01 },
+  { id:'KD', min:1,   max:3,   val:2,   step:0.01 }
+];
+
+// ── Construction du tableau ───────────────────────────────
+const container = document.getElementById('pid-rows');
+params.forEach(p => {
+  const dec = p.step < 0.01 ? 3 : p.step < 0.1 ? 2 : p.step < 1 ? 1 : 0;
+  p.dec = dec;
+  const row = document.createElement('div');
+  row.className = 'pid-row';
+  row.innerHTML = `
+    <div class="pid-label">${p.id}</div>
+    <input class="pid-input" id="min-${p.id}" type="number" value="${p.min}" step="${p.step}">
+    <input type="range"      id="sl-${p.id}"  min="${p.min}" max="${p.max}" value="${p.val}" step="${p.step}">
+    <input class="pid-input" id="max-${p.id}" type="number" value="${p.max}" step="${p.step}">
+    <div class="val-display" id="val-${p.id}">${p.val.toFixed(dec)}</div>`;
+  container.appendChild(row);
+
+  const sl = document.getElementById('sl-'+p.id);
+  const vd = document.getElementById('val-'+p.id);
+
+  sl.addEventListener('input', () => {
+    const v = parseFloat(sl.value).toFixed(dec);
+    vd.textContent = v;
+    addLog('[PID] ' + p.id + ' = ' + v, '');
+    wsSend({ cmd:'param', param: p.id, value: parseFloat(v) });
+  });
+  document.getElementById('min-'+p.id).addEventListener('change', e => { document.getElementById('sl-'+p.id).min = e.target.value; });
+  document.getElementById('max-'+p.id).addEventListener('change', e => { document.getElementById('sl-'+p.id).max = e.target.value; });
+});
+
+// ── Initialisation depuis un objet JSON ──────────────────
+function initFromJson(data) {
+  params.forEach(p => {
+    const mn  = data[p.id+'min'];
+    const mx  = data[p.id+'max'];
+    const val = data[p.id+'val'];
+    if (mn  !== undefined) { document.getElementById('min-'+p.id).value = mn;  document.getElementById('sl-'+p.id).min = mn; }
+    if (mx  !== undefined) { document.getElementById('max-'+p.id).value = mx;  document.getElementById('sl-'+p.id).max = mx; }
+    if (val !== undefined) {
+      document.getElementById('sl-'+p.id).value = val;
+      document.getElementById('val-'+p.id).textContent = parseFloat(val).toFixed(p.dec);
+    }
+  });
+  addLog('[SD] PID.json chargé', 'ok');
+}
+
+// ── Collecte des valeurs courantes pour sauvegarde ────────
+function collectJson() {
+  const out = {};
+  params.forEach(p => {
+    out[p.id+'min'] = parseFloat(document.getElementById('min-'+p.id).value);
+    out[p.id+'max'] = parseFloat(document.getElementById('max-'+p.id).value);
+    out[p.id+'val'] = parseFloat(document.getElementById('sl-'+p.id).value);
+  });
+  return out;
+}
+
+// ── Chargement PID.json depuis la SD via HTTP ─────────────
+async function loadFromSD() {
+  try {
+    addLog('[SD] Chargement /balrob/PID.json…', '');
+    const r = await fetch('/balrob/PID.json');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    initFromJson(data);
+  } catch(e) {
+    addLog('[SD] Impossible de charger PID.json : ' + e.message, 'warn');
+  }
+}
+
+// ── Sauvegarde : envoi via WebSocket ─────────────────────
+function saveToSD() {
+  const payload = collectJson();
+  wsSend({ cmd:'save', data: payload });
+  addLog('[SD] Sauvegarde → /balrob/PID.json…', '');
+}
+
+function applyFilter() { addLog('[FILTER] Filtre médian appliqué (N=5)', 'ok'); }
+
+// ─────────────────────────────────────────────────────────
+// WebSocket avec reconnexion automatique
+// ─────────────────────────────────────────────────────────
+let ws = null, wsReconnectTimer = null;
+const badge   = document.getElementById('ws-badge');
+const btnSave = document.getElementById('btn-save');
+
+function setWsBadge(state) {
+  badge.className = 'ws-badge ' + state;
+  badge.textContent = state === 'on' ? 'WIFI ON' : state === 'connecting' ? 'WIFI…' : 'WIFI OFF';
+  btnSave.disabled = (state !== 'on');
+}
+
+function wsSend(obj) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(obj));
+  } else {
+    addLog('[WS] Non connecté — message ignoré', 'warn');
+  }
+}
+
+function connectWS() {
+  if (ws) { try { ws.close(); } catch(e){} }
+  const host = location.hostname || '192.168.1.42';
+  addLog('[WS] Connexion → ws://'+host+'/ws', '');
+  setWsBadge('connecting');
+  ws = new WebSocket('ws://'+host+'/ws');
+
+  ws.onopen = () => {
+    setWsBadge('on');
+    addLog('[WS] Connecté → '+host, 'ok');
+    clearTimeout(wsReconnectTimer);
+  };
+  ws.onclose = () => {
+    setWsBadge('off');
+    addLog('[WS] Déconnecté — reconnexion dans 3s', 'warn');
+    wsReconnectTimer = setTimeout(connectWS, 3000);
+  };
+  ws.onerror = () => {
+    addLog('[WS] Erreur de connexion', 'err');
+  };
+  ws.onmessage = e => {
+    try {
+      const msg = JSON.parse(e.data);
+      if      (msg.event === 'saved') addLog('[SD] Fichier PID.json sauvegardé ✓', 'ok');
+      else if (msg.event === 'error') addLog('[SD] Erreur : ' + msg.detail, 'err');
+      else addLog('[WS] ' + e.data, '');
+    } catch(_) {
+      addLog('[WS] ' + e.data, '');
+    }
+  };
+}
+
+// ─────────────────────────────────────────────────────────
+// Terminal
+// ─────────────────────────────────────────────────────────
+let logCount = 0;
+function nowStr() { return new Date().toTimeString().slice(0,8); }
+function addLog(msg, cls) {
+  const term = document.getElementById('terminal');
+  const oldCursor = term.querySelector('#tc');
+  if (oldCursor) oldCursor.parentElement.remove();
+
+  const line = document.createElement('div');
+  line.className = 'term-line';
+  line.innerHTML = `<span class="term-time">${nowStr()}</span><span class="term-msg ${cls}">${msg}</span>`;
+  term.appendChild(line);
+
+  const cur = document.createElement('div');
+  cur.className = 'term-line';
+  cur.innerHTML = `<span class="term-time" id="tc"></span><span class="term-msg" id="tm"><span class="term-cursor"></span></span>`;
+  term.appendChild(cur);
+  term.scrollTop = term.scrollHeight;
+  if (++logCount > 100) term.removeChild(term.firstChild);
+}
+
+// ─────────────────────────────────────────────────────────
+// Joystick analogique
+// ─────────────────────────────────────────────────────────
+const canvas = document.getElementById('joystick');
+const ctx    = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const cx = W/2, cy = H/2, outerR = 82, innerR = 30;
+let stickX=0, stickY=0, dragging=false, lastLogDir='', lastLogTime=0;
+
+function drawJoystick() {
+  ctx.clearRect(0,0,W,H);
+  // Base circulaire
+  ctx.beginPath(); ctx.arc(cx,cy,outerR,0,Math.PI*2);
+  ctx.fillStyle='#EDF4FC'; ctx.fill();
+  ctx.strokeStyle='#B5D4F4'; ctx.lineWidth=1.5; ctx.stroke();
+  // Cercle intérieur de référence
+  ctx.beginPath(); ctx.arc(cx,cy,outerR*0.55,0,Math.PI*2);
+  ctx.strokeStyle='#D3E8F8'; ctx.lineWidth=0.5; ctx.stroke();
+  // Croix de référence
+  const cl=outerR-4;
+  ctx.strokeStyle='#D3E8F8'; ctx.lineWidth=0.5;
+  ctx.beginPath(); ctx.moveTo(cx-cl,cy); ctx.lineTo(cx+cl,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,cy-cl); ctx.lineTo(cx,cy+cl); ctx.stroke();
+  // Tige
+  const nx=cx+stickX*outerR*0.85, ny=cy-stickY*outerR*0.85;
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(nx,ny);
+  ctx.strokeStyle='#85B7EB'; ctx.lineWidth=1.5; ctx.stroke();
+  // Bouton
+  const grad=ctx.createRadialGradient(nx-innerR*0.25,ny-innerR*0.3,innerR*0.05,nx,ny,innerR);
+  grad.addColorStop(0,'#85B7EB'); grad.addColorStop(1,'#185FA5');
+  ctx.beginPath(); ctx.arc(nx,ny,innerR,0,Math.PI*2);
+  ctx.fillStyle=grad; ctx.fill();
+  ctx.strokeStyle='#378ADD'; ctx.lineWidth=1.5; ctx.stroke();
+  // Reflet
+  ctx.beginPath(); ctx.arc(nx-innerR*0.25,ny-innerR*0.28,innerR*0.2,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.fill();
+}
+
+function getDir(x,y) {
+  if (Math.sqrt(x*x+y*y)<0.25) return 'STOP';
+  const a=Math.atan2(y,x)*180/Math.PI;
+  if (a>-45&&a<=45)   return 'RIGHT';
+  if (a>45&&a<=135)   return 'FWD';
+  if (a<-45&&a>=-135) return 'BCK';
+  return 'LEFT';
+}
+
+function updateStick(px,py) {
+  let dx=px-cx, dy=-(py-cy);
+  const dist=Math.sqrt(dx*dx+dy*dy);
+  if (dist>outerR){dx*=outerR/dist; dy*=outerR/dist;}
+  stickX=dx/outerR; stickY=dy/outerR;
+  const rx=Math.round(stickX*100), ry=Math.round(stickY*100);
+  document.getElementById('jx').textContent=rx;
+  document.getElementById('jy').textContent=ry;
+  document.getElementById('posX').textContent=rx;
+  document.getElementById('posY').textContent=ry;
+  const dir=getDir(stickX,stickY);
+  document.getElementById('jdir').textContent=dir;
+  const now=Date.now();
+  if (dir!==lastLogDir&&now-lastLogTime>300) {
+    addLog('[JOY] '+dir+' (x='+rx+' y='+ry+')', dir==='STOP'?'warn':'');
+    wsSend({cmd:'joy',x:rx,y:ry,dir:dir});
+    lastLogDir=dir; lastLogTime=now;
+  }
+  drawJoystick();
+}
+
+function releaseStick() {
+  dragging=false;
+  const anim=()=>{
+    stickX*=0.82; stickY*=0.82;
+    if (Math.abs(stickX)<0.01&&Math.abs(stickY)<0.01) {
+      stickX=0; stickY=0;
+      ['jx','jy','posX','posY'].forEach(id=>document.getElementById(id).textContent=0);
+      document.getElementById('jdir').textContent='STOP';
+      if (lastLogDir!=='STOP') {
+        addLog('[JOY] STOP','warn');
+        wsSend({cmd:'joy',x:0,y:0,dir:'STOP'});
+        lastLogDir='STOP';
+      }
+      drawJoystick(); return;
+    }
+    drawJoystick(); requestAnimationFrame(anim);
+  };
+  requestAnimationFrame(anim);
+}
+
+canvas.addEventListener('mousedown', e=>{
+  dragging=true;
+  const r=canvas.getBoundingClientRect();
+  updateStick(e.clientX-r.left, e.clientY-r.top);
+});
+window.addEventListener('mousemove', e=>{
+  if (!dragging) return;
+  const r=canvas.getBoundingClientRect();
+  updateStick(e.clientX-r.left, e.clientY-r.top);
+});
+window.addEventListener('mouseup', ()=>{ if(dragging) releaseStick(); });
+
+canvas.addEventListener('touchstart', e=>{
+  e.preventDefault(); dragging=true;
+  const r=canvas.getBoundingClientRect(), t=e.touches[0];
+  updateStick(t.clientX-r.left, t.clientY-r.top);
+},{passive:false});
+canvas.addEventListener('touchmove', e=>{
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect(), t=e.touches[0];
+  updateStick(t.clientX-r.left, t.clientY-r.top);
+},{passive:false});
+canvas.addEventListener('touchend', ()=>releaseStick());
+
+// ─────────────────────────────────────────────────────────
+// Démarrage
+// ─────────────────────────────────────────────────────────
+drawJoystick();
+loadFromSD();   // charge PID.json depuis l'ESP32
+connectWS();    // ouvre le WebSocket avec reconnexion auto
+</script>
+</body>
+</html>

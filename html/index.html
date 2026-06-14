@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Paramètres et Joystick</title>
+    <link rel="stylesheet" href="css/style-IHM.css" />
+    <link rel="stylesheet" href="css/style-MY.css" />
+  </head>
+  <body>
+     
+    <div class="container">
+      <div class="zone1">
+        <table>
+          <thead>
+            <tr>
+              <th>PARAMETERS</th>
+              <th>MIN</th>
+              <th>SLIDER</th>
+              <th>MAX</th>
+              <th>VALUE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>TA</b></td>
+              <td><input type="text" id="TAmin" /></td>
+              <td>
+                <input
+                  type="range"
+                  id="TArange"
+                  step="0.1"
+                  class="slider"
+                  data-row="0"
+                />
+              </td>
+              <td><input type="text" id="TAmax" /></td>
+              <td>
+                <input type="text" id="TAval" class="value-display" readonly />
+              </td>
+            </tr>
+            <tr>
+              <td><b>KP</b></td>
+              <td><input type="text" id="KPmin" /></td>
+              <td>
+                <input
+                  type="range"
+                  id="KPrange"
+                  step="0.1"
+                  class="slider"
+                  data-row="1"
+                />
+              </td>
+              <td><input type="text" id="KPmax" /></td>
+              <td>
+                <input type="text" id="KPval" class="value-display" readonly />
+              </td>
+            </tr>
+            <tr>
+              <td><b>KI</b></td>
+              <td><input type="text" id="KImin" /></td>
+              <td>
+                <input
+                  type="range"
+                  id="KIrange"
+                  step="0.1"
+                  class="slider"
+                  data-row="2"
+                />
+              </td>
+              <td><input type="text" id="KImax" /></td>
+              <td>
+                <input type="text" id="KIval" class="value-display" readonly />
+              </td>
+            </tr>
+            <tr>
+              <td><b>KD</b></td>
+              <td><input type="text" id="KDmin" /></td>
+              <td>
+                <input
+                  type="range"
+                  id="KDrange"
+                  step="0.1"
+                  class="slider"
+                  data-row="3"
+                />
+              </td>
+              <td><input type="text" id="KDmax" /></td>
+              <td>
+                <input type="text" id="KDval" class="value-display" readonly />
+              </td>
+            </tr>
+            <tr>
+              <!-- ...existing code... -->
+            </tr>
+
+            <tr>
+              <td>
+                <button
+                  class="button"
+                  onclick="window.location.href='index-wifi.html'"
+                  id="chooseWIFI"
+                >
+                  WIFI
+                </button>
+              </td>
+              <td>
+                <button
+                  class="button"
+                  onclick="window.location.href='index-filter.html'"
+                  id="chooseFILTER"
+                >
+                  FILTER
+                </button>
+              </td>
+              <td class="inline-cell" colspan="1">
+                <div class="pos-container">
+                  <label for="posX">posX=</label>
+                  <input type="text" id="posX" />
+                  <label for="posY">posY=</label>
+                  <input type="text" id="posY" />
+                </div>
+              </td>
+              <td></td>
+              <td>
+                <button class="button" id="save2SD">SAVE on SD</button>
+              </td>
+            </tr>
+            <!-- Status message div -->
+            <tr>
+              <td colspan="5">
+                <div id="status" class="status" style="display: none;"></div>
+              </td>
+            </tr>
+            <!-- ...existing code... -->
+          </tbody>
+        </table>
+      </div>
+      <div class="zone-horizontale">
+        <div class="zone2" id="joystick">
+          <div class="joystick-base"></div>
+          <div class="joystickball"></div>
+        </div>
+
+        <div class="zone3" id="log">
+          <p>Ceci est le contenu de la zone 3.</p>
+        </div>
+      </div>
+    </div>
+    <script src="js/script.js"></script>
+    <script src="js/script-joy.js"></script>
+    <script src="js/script-modal.js"></script>
+	<script src="js/script-log.js"></script>
+
+  </body>
+</html>

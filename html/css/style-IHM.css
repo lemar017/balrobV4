@@ -1,0 +1,360 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #6e8efb, #a777e3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+.container {
+  display: flex;
+  flex-direction: column; /* empile zone1, zone2, coordonnees verticalement */
+  align-items: flex-start; /* centre horizontalement tous les enfants */
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #6e8efb, #a777e3);
+}
+
+/* Zone 1 : Tableau */
+.zone1 {
+  border: 4px solid #007bff; /* Bordure distincte pour la zone 1 */
+  padding: 10px;
+  background-color: #e9f5ff; /* Couleur de fond pour la zone 1 */
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px; /* Espace entre zone 1 et zone 2 */
+  width: 100%; /* Le tableau s'adapte à la largeur de l'écran */
+  box-sizing: border-box; /* Inclure padding et border dans la largeur */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre légère pour la zone 1 */
+}
+
+.zone1 table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* Les largeurs de colonnes sont fixes */
+}
+
+.zone1 th,
+.zone1 td {
+  border: 1px solid #ccc;
+  padding: 0; /* Supprime le padding par défaut des cellules pour mieux contrôler la taille des inputs */
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Applique la hauteur de ligne à toutes les cellules du corps du tableau */
+.zone1 tbody tr td {
+  height: 80px; /* Définit une hauteur fixe pour toutes les cellules des lignes de données */
+}
+
+/* Largeurs des colonnes */
+.zone1 th:nth-child(1),
+.zone1 td:nth-child(1),
+.zone1 th:nth-child(2),
+.zone1 td:nth-child(2),
+.zone1 th:nth-child(4),
+.zone1 td:nth-child(4),
+.zone1 th:nth-child(5),
+.zone1 td:nth-child(5) {
+  width: 15%;
+}
+
+.zone1 th:nth-child(3),
+.zone1 td:nth-child(3) {
+  width: 40%;
+}
+
+/* Ligne 1 (titres) */
+.zone1 thead tr {
+  background-color: #4caf50;
+  color: white;
+  font-size: 1.2em; /* Taille de police plus élevée */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Légère ombre sur le texte des titres */
+}
+
+/* Styles pour les champs texte (MIN, MAX, VALUE) */
+.zone1 input[type="text"] {
+  width: calc(100% - 16px);
+  height: calc(
+    80px - 10px
+  ); /* Ajuste à la hauteur de la cellule moins le padding */
+  padding: 5px 8px;
+  margin: 5px auto;
+  display: block;
+
+  box-sizing: border-box;
+  border: 1px solid #a0a0a0;
+
+  background-color: #f8f8f8;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 1em;
+  font-weight: bold;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.zone1 input[type="text"]:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Styles spécifiques pour le slider amélioré */
+.zone1 input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80%;
+  height: 10px;
+  background: #ddd;
+  outline: none;
+  opacity: 0.9;
+  transition: opacity 0.2s, background-color 0.2s;
+  border-radius: 5px;
+  margin: auto;
+  display: block;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.zone1 input[type="range"]:hover {
+  opacity: 1;
+  background-color: #ccc;
+}
+
+/* Style du "pouce" (le curseur que l'on déplace) */
+.zone1 input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #007bff;
+  cursor: grab;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  margin-top: -5px;
+  border: 2px solid #fff;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.zone1 input[type="range"]::-webkit-slider-thumb:active {
+  background: #0056b3;
+  cursor: grabbing;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.zone1 input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #007bff;
+  cursor: grab;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  border: 2px solid #fff;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.zone1 input[type="range"]::-moz-range-thumb:active {
+  background: #0056b3;
+  cursor: grabbing;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Styles pour la piste remplie (Firefox) */
+.zone1 input[type="range"]::-moz-range-track {
+  background: #ddd;
+  border-radius: 5px;
+  height: 10px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Remplissage de la piste pour Webkit (Chrome, Safari) */
+.zone1 input[type="range"]::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to right,
+    #007bff 0%,
+    #007bff var(--value, 0%),
+    #ddd var(--value, 0%),
+    #ddd 100%
+  );
+  border-radius: 5px;
+  height: 10px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Colonne 1 : Titres en gras */
+.zone1 td:nth-child(1) {
+  font-weight: bold;
+  padding: 5px;
+}
+
+/* Colonne 5 : ReadOnly */
+.zone1 input[readonly] {
+  background-color: #e0e0e0;
+  cursor: not-allowed;
+  font-weight: bold;
+  color: #333;
+  border-color: #c0c0c0;
+}
+
+/* Nouveaux styles pour la 6ème ligne */
+.zone1 tbody tr:last-child td b#joystickCoords {
+  /* Style du texte des coordonnées */
+  display: flex; /* Utilise flexbox pour centrer le contenu */
+  justify-content: center; /* Centre horizontalement */
+  align-items: center; /* Centre verticalement */
+  height: 100%; /* Prend toute la hauteur de la cellule */
+  width: 100%; /* Prend toute la largeur de la cellule */
+  font-size: 1.1em; /* Rend le texte un peu plus grand */
+  color: #333;
+}
+
+.zone1 tbody tr:last-child td button#saveButton {
+  /* Style du bouton SAVE on SD */
+  display: flex; /* Utilise flexbox pour centrer le contenu du bouton */
+  justify-content: center; /* Centre horizontalement */
+  align-items: center; /* Centre verticalement */
+  height: calc(
+    100% - 16px
+  ); /* Prend la hauteur de la cellule moins le padding du bouton */
+  width: calc(
+    100% - 16px
+  ); /* Prend la largeur de la cellule moins le padding du bouton */
+  padding: 5px 10px; /* Padding interne pour le bouton */
+  margin: 8px auto; /* Centre le bouton dans sa cellule */
+  background-color: #28a745; /* Couleur verte pour le bouton SAVE */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.1em;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.zone1 tbody tr:last-child td button#saveButton:hover {
+  background-color: #218838; /* Couleur plus foncée au survol */
+}
+
+.zone1 tbody tr:last-child td button#saveButton:active {
+  background-color: #1e7e34; /* Couleur encore plus foncée au clic */
+  transform: translateY(1px); /* Léger effet de pression */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/*----------------------------------------------------------------------------*/
+/* Zone 2 : Joystick */
+.zone-horizontale {
+  display: flex;
+
+  width: 100%;
+}
+.zone2 {
+  flex-basis: 30%;
+  border: 4px solid #007bff; /* Bordure distincte pour la zone 2 */
+  padding: 10px;
+  width: 300px;
+  height: 300px;
+  background-color: #e9f5ff;
+  position: relative;
+  overflow: hidden;
+}
+
+.joystick-base {
+  width: 200px;
+  height: 200px;
+  background-image: url("../images/joystick-base.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.joystickball {
+  width: 100px;
+  height: 100px;
+  background-image: url("../images/joystick-ball.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  cursor: move;
+  transition: box-shadow 0.3s ease;
+}
+
+.joystick-ball:hover {
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+/*-------------------------------------------------------------------------------*/
+
+.zone3 {
+  flex-basis: 70%; /* Définit la taille initiale à 70% */
+  overflow: auto;
+}
+
+#log {
+  /* Terminal de logs en temps réel */
+  flex: 1;
+  height: 300px;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #000;
+  color: #0f0;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  padding: 10px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+#log p {
+  margin: 0 0 4px 0;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+}
+#log p {
+  margin: 0 0 4px 0;
+}
+
+/*-------------------------------------------------------------------------------*/
+.coordonnees {
+  background-color: 4px solid #007bff; /* Bordure distincte pour la zone coordonnees */
+  padding: 10px;
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 16px;
+}
+
+.coordonnees input {
+  width: 60px;
+  padding: 5px;
+  margin: 0 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  text-align: center;
+  font-family: monospace;
+}

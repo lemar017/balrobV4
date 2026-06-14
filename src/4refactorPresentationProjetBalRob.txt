@@ -1,0 +1,16 @@
+Je réalise un "balancing robot" avec un esp32 un mpu6050 codé en c++. 
+Je sauvegarde les parametres du programme sur une carte SD. je ne veux pas de SPiffs.
+
+ je controle les parametre PID à l'aide d'une page web. sur ceuute page j'ai également une manette virtuelle qui me permet de commander les moteurs pas à pas.
+
+ Sur cette même page j'ai un terminal qui me permet d'encoyer des messages pour debugger.
+ 
+ Je ne veux pas changer la présentation de cette page.
+
+J'ai également en plus de la page index.html une page index-wifi.html qui me permet de me connecter au wifi et de donner les parametres essentiels qui seront également sauvegardés sur carte SD.
+
+J'ai aussi une page index-filter.html qui me permet de choisir plusieurs façons de filtrer les infos en provenance du MPU6050. la aussi il y a sauvegarde sur carte SD
+
+ci joint le code *.c++  *.h les *.html les *.js les *.css les *.json. dans un fichier .zip
+
+ce code fonctionne mais est mal organisé. je voudrais dans un premier temps réorganiser ce code pour avoir le moins possible de variables globales. 

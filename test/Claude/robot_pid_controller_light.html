@@ -1,0 +1,294 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.wrap { display: flex; flex-direction: column; gap: 10px; padding: 12px 0; font-family: var(--font-mono); }
+.panel { background: #fff; border: 1px solid #D3D1C7; border-radius: var(--border-radius-lg); overflow: hidden; }
+.panel-header { display: grid; grid-template-columns: 130px 90px 1fr 90px 90px; background: #378ADD; padding: 8px 12px; gap: 8px; }
+.panel-header span { font-size: 11px; font-weight: 500; color: #E6F1FB; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; }
+.panel-header span:first-child { text-align: left; }
+.panel-header span:last-child { text-align: right; }
+.pid-row { display: grid; grid-template-columns: 130px 90px 1fr 90px 90px; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #E8EDF5; background: #fff; }
+.pid-row:last-child { border-bottom: none; }
+.pid-label { font-size: 13px; font-weight: 500; color: #185FA5; letter-spacing: 0.05em; }
+.pid-input { border: 1px solid #B5D4F4; border-radius: var(--border-radius-md); padding: 5px 8px; font-size: 12px; font-family: var(--font-mono); background: #F4F8FD; color: #0C447C; width: 100%; text-align: center; }
+.pid-input:focus { outline: none; border-color: #378ADD; box-shadow: 0 0 0 2px #B5D4F455; }
+input[type=range] { width: 100%; accent-color: #378ADD; cursor: pointer; }
+.val-display { border: 1px solid #B5D4F4; border-radius: var(--border-radius-md); padding: 5px 8px; font-size: 12px; font-family: var(--font-mono); background: #E6F1FB; color: #185FA5; width: 100%; text-align: center; font-weight: 500; }
+.controls-row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; flex-wrap: wrap; background: #F4F8FD; border-top: 1px solid #D3E8F8; }
+.btn { padding: 7px 16px; border-radius: var(--border-radius-md); font-size: 12px; font-family: var(--font-mono); font-weight: 500; letter-spacing: 0.06em; cursor: pointer; border: none; transition: background 0.15s, transform 0.1s; text-transform: uppercase; }
+.btn:active { transform: scale(0.97); }
+.btn-blue { background: #378ADD; color: #E6F1FB; }
+.btn-blue:hover { background: #185FA5; }
+.btn-outline { background: #fff; border: 1px solid #B5D4F4; color: #378ADD; }
+.btn-outline:hover { background: #E6F1FB; }
+.pos-group { display: flex; align-items: center; gap: 6px; margin-left: 4px; }
+.pos-label { font-size: 11px; color: #185FA5; letter-spacing: 0.06em; }
+.pos-val { border: 1px solid #B5D4F4; border-radius: var(--border-radius-md); padding: 5px 10px; font-size: 12px; font-family: var(--font-mono); background: #E6F1FB; color: #185FA5; width: 70px; text-align: center; font-weight: 500; }
+.btn-save { margin-left: auto; background: #185FA5; color: #E6F1FB; }
+.btn-save:hover { background: #0C447C; }
+.bottom-row { display: grid; grid-template-columns: 240px 1fr; gap: 10px; }
+.joystick-panel { background: #fff; border: 1px solid #D3D1C7; border-radius: var(--border-radius-lg); display: flex; flex-direction: column; align-items: center; padding: 14px 12px; gap: 10px; }
+.joy-title { font-size: 10px; color: #888780; letter-spacing: 0.08em; text-transform: uppercase; align-self: flex-start; }
+canvas#joystick { display: block; cursor: grab; touch-action: none; }
+canvas#joystick:active { cursor: grabbing; }
+.joy-coords { display: flex; gap: 16px; }
+.joy-coord { font-size: 11px; color: #5F5E5A; font-family: var(--font-mono); }
+.joy-coord span { color: #185FA5; font-weight: 500; min-width: 28px; display: inline-block; }
+.terminal-panel { background: #F4F8FD; border: 1px solid #B5D4F4; border-radius: var(--border-radius-lg); display: flex; flex-direction: column; overflow: hidden; }
+.term-header { display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: #E6F1FB; border-bottom: 1px solid #B5D4F4; }
+.term-dot { width: 8px; height: 8px; border-radius: 50%; }
+.term-title { font-size: 11px; color: #185FA5; letter-spacing: 0.08em; flex: 1; font-weight: 500; }
+.term-status { font-size: 10px; color: #378ADD; opacity: 0.8; }
+.term-body { flex: 1; padding: 10px 14px; overflow-y: auto; height: 195px; display: flex; flex-direction: column; gap: 2px; background: #F9FBFE; }
+.term-line { font-size: 12px; font-family: var(--font-mono); line-height: 1.6; display: flex; gap: 10px; }
+.term-time { color: #85B7EB; min-width: 70px; }
+.term-msg { color: #0C447C; }
+.term-msg.warn { color: #BA7517; }
+.term-msg.err { color: #A32D2D; }
+.term-msg.ok { color: #3B6D11; }
+.term-cursor { display: inline-block; width: 7px; height: 13px; background: #378ADD; vertical-align: middle; animation: blink 1s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.wifi-indicator { width: 8px; height: 8px; border-radius: 50%; background: #E24B4A; }
+.wifi-indicator.on { background: #639922; animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+</style>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="panel-header">
+      <span>Parameter</span><span>Min</span><span>Slider</span><span>Max</span><span>Value</span>
+    </div>
+    <div id="pid-rows"></div>
+    <div class="controls-row">
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="wifi-indicator" id="wifi-dot"></div>
+        <button class="btn btn-blue" id="wifi-btn" onclick="toggleWifi()">WIFI</button>
+      </div>
+      <button class="btn btn-outline" onclick="applyFilter()">FILTER</button>
+      <div class="pos-group">
+        <span class="pos-label">posX =</span>
+        <div class="pos-val" id="posX">0</div>
+      </div>
+      <div class="pos-group">
+        <span class="pos-label">posY =</span>
+        <div class="pos-val" id="posY">0</div>
+      </div>
+      <button class="btn btn-save" onclick="saveToSD()">SAVE on SD</button>
+    </div>
+  </div>
+
+  <div class="bottom-row">
+    <div class="joystick-panel">
+      <span class="joy-title">Joystick — déplacement</span>
+      <canvas id="joystick" width="180" height="180"></canvas>
+      <div class="joy-coords">
+        <div class="joy-coord">X: <span id="jx">0</span></div>
+        <div class="joy-coord">Y: <span id="jy">0</span></div>
+        <div class="joy-coord"><span id="jdir" style="min-width:48px">STOP</span></div>
+      </div>
+    </div>
+
+    <div class="terminal-panel">
+      <div class="term-header">
+        <div class="term-dot" style="background:#639922"></div>
+        <div class="term-dot" style="background:#BA7517"></div>
+        <div class="term-dot" style="background:#A32D2D"></div>
+        <span class="term-title">Terminal série — ESP32</span>
+        <span class="term-status">115200 baud</span>
+      </div>
+      <div class="term-body" id="terminal">
+        <div class="term-line"><span class="term-time">10:10:23</span><span class="term-msg warn">[WS] Déconnecté, reconnexion dans 2s</span></div>
+        <div class="term-line"><span class="term-time">10:10:25</span><span class="term-msg ok">[WS] Connecté → 192.168.1.42</span></div>
+        <div class="term-line"><span class="term-time">10:10:25</span><span class="term-msg">[PID] TA=90 KP=1.20 KI=0.05 KD=0.30</span></div>
+        <div class="term-line"><span class="term-time">10:10:26</span><span class="term-msg">[IMU] angle=89.7° err=0.3°</span></div>
+        <div class="term-line"><span class="term-time" id="tc"></span><span class="term-msg" id="tm"><span class="term-cursor"></span></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const params = [
+  { id:'TA', min:0, max:180, val:90,   step:1 },
+  { id:'KP', min:0, max:10,  val:1.2,  step:0.01 },
+  { id:'KI', min:0, max:2,   val:0.05, step:0.001 },
+  { id:'KD', min:0, max:5,   val:0.30, step:0.001 }
+];
+const container = document.getElementById('pid-rows');
+params.forEach(p => {
+  const dec = p.step < 0.01 ? 3 : p.step < 0.1 ? 2 : 0;
+  const row = document.createElement('div');
+  row.className = 'pid-row';
+  row.innerHTML = `
+    <div class="pid-label">${p.id}</div>
+    <input class="pid-input" id="min-${p.id}" type="number" value="${p.min}" step="${p.step}">
+    <input type="range" id="sl-${p.id}" min="${p.min}" max="${p.max}" value="${p.val}" step="${p.step}">
+    <input class="pid-input" id="max-${p.id}" type="number" value="${p.max}" step="${p.step}">
+    <div class="val-display" id="val-${p.id}">${p.val.toFixed(dec)}</div>`;
+  container.appendChild(row);
+  const sl = document.getElementById('sl-'+p.id);
+  const vd = document.getElementById('val-'+p.id);
+  sl.addEventListener('input', () => {
+    const v = parseFloat(sl.value).toFixed(dec);
+    vd.textContent = v;
+    addLog('[PID] ' + p.id + ' = ' + v, '');
+  });
+  document.getElementById('min-'+p.id).addEventListener('change', e => sl.min = e.target.value);
+  document.getElementById('max-'+p.id).addEventListener('change', e => sl.max = e.target.value);
+});
+
+let wifiOn = false;
+function toggleWifi() {
+  wifiOn = !wifiOn;
+  document.getElementById('wifi-dot').className = 'wifi-indicator' + (wifiOn ? ' on' : '');
+  document.getElementById('wifi-btn').textContent = wifiOn ? 'WIFI ON' : 'WIFI';
+  addLog('[WS] ' + (wifiOn ? 'Connecté → 192.168.1.42' : 'Déconnecté'), wifiOn ? 'ok' : 'warn');
+}
+function applyFilter() { addLog('[FILTER] Filtre médian appliqué (N=5)', 'ok'); }
+function saveToSD() { addLog('[SD] Paramètres sauvegardés → /pid.cfg', 'ok'); }
+
+let logCount = 0;
+function nowStr() { return new Date().toTimeString().slice(0,8); }
+function addLog(msg, cls) {
+  const term = document.getElementById('terminal');
+  const oldCursor = term.querySelector('#tc');
+  if (oldCursor) oldCursor.parentElement.remove();
+  const line = document.createElement('div');
+  line.className = 'term-line';
+  line.innerHTML = `<span class="term-time">${nowStr()}</span><span class="term-msg ${cls}">${msg}</span>`;
+  term.appendChild(line);
+  const cur = document.createElement('div');
+  cur.className = 'term-line';
+  cur.innerHTML = `<span class="term-time" id="tc"></span><span class="term-msg" id="tm"><span class="term-cursor"></span></span>`;
+  term.appendChild(cur);
+  term.scrollTop = term.scrollHeight;
+  if (++logCount > 80) term.removeChild(term.firstChild);
+}
+
+const canvas = document.getElementById('joystick');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const cx = W/2, cy = H/2;
+const outerR = 82, innerR = 30;
+let stickX = 0, stickY = 0, dragging = false;
+let lastLogDir = '', lastLogTime = 0;
+
+function drawJoystick() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR, 0, Math.PI*2);
+  ctx.fillStyle = '#EDF4FC';
+  ctx.fill();
+  ctx.strokeStyle = '#B5D4F4';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR * 0.55, 0, Math.PI*2);
+  ctx.strokeStyle = '#D3E8F8';
+  ctx.lineWidth = 0.5;
+  ctx.stroke();
+
+  ctx.strokeStyle = '#D3E8F8';
+  ctx.lineWidth = 0.5;
+  const cl = outerR - 4;
+  ctx.beginPath(); ctx.moveTo(cx-cl,cy); ctx.lineTo(cx+cl,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,cy-cl); ctx.lineTo(cx,cy+cl); ctx.stroke();
+
+  const nx = cx + stickX * outerR * 0.85;
+  const ny = cy - stickY * outerR * 0.85;
+
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(nx, ny);
+  ctx.strokeStyle = '#85B7EB';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  const grad = ctx.createRadialGradient(nx - innerR*0.25, ny - innerR*0.3, innerR*0.05, nx, ny, innerR);
+  grad.addColorStop(0, '#85B7EB');
+  grad.addColorStop(1, '#185FA5');
+  ctx.beginPath();
+  ctx.arc(nx, ny, innerR, 0, Math.PI*2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.strokeStyle = '#378ADD';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(nx - innerR*0.25, ny - innerR*0.28, innerR*0.2, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.fill();
+}
+
+function getDir(x, y) {
+  if (Math.sqrt(x*x+y*y) < 0.25) return 'STOP';
+  const a = Math.atan2(y, x) * 180 / Math.PI;
+  if (a > -45 && a <= 45) return 'RIGHT';
+  if (a > 45 && a <= 135) return 'FWD';
+  if (a < -45 && a >= -135) return 'BCK';
+  return 'LEFT';
+}
+
+function updateStick(px, py) {
+  let dx = px - cx, dy = -(py - cy);
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  if (dist > outerR) { dx *= outerR/dist; dy *= outerR/dist; }
+  stickX = dx / outerR; stickY = dy / outerR;
+  const rx = Math.round(stickX * 100), ry = Math.round(stickY * 100);
+  document.getElementById('jx').textContent = rx;
+  document.getElementById('jy').textContent = ry;
+  document.getElementById('posX').textContent = rx;
+  document.getElementById('posY').textContent = ry;
+  const dir = getDir(stickX, stickY);
+  document.getElementById('jdir').textContent = dir;
+  const now = Date.now();
+  if (dir !== lastLogDir && now - lastLogTime > 300) {
+    addLog('[JOY] ' + dir + ' (x='+rx+' y='+ry+')', dir === 'STOP' ? 'warn' : '');
+    lastLogDir = dir; lastLogTime = now;
+  }
+  drawJoystick();
+}
+
+function releaseStick() {
+  dragging = false;
+  const animate = () => {
+    stickX *= 0.82; stickY *= 0.82;
+    if (Math.abs(stickX) < 0.01 && Math.abs(stickY) < 0.01) {
+      stickX = 0; stickY = 0;
+      ['jx','jy','posX','posY'].forEach(id => document.getElementById(id).textContent = 0);
+      document.getElementById('jdir').textContent = 'STOP';
+      if (lastLogDir !== 'STOP') { addLog('[JOY] STOP', 'warn'); lastLogDir = 'STOP'; }
+      drawJoystick(); return;
+    }
+    drawJoystick(); requestAnimationFrame(animate);
+  };
+  requestAnimationFrame(animate);
+}
+
+canvas.addEventListener('mousedown', e => {
+  dragging = true;
+  const r = canvas.getBoundingClientRect();
+  updateStick(e.clientX - r.left, e.clientY - r.top);
+});
+window.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const r = canvas.getBoundingClientRect();
+  updateStick(e.clientX - r.left, e.clientY - r.top);
+});
+window.addEventListener('mouseup', () => { if (dragging) releaseStick(); });
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault(); dragging = true;
+  const r = canvas.getBoundingClientRect(), t = e.touches[0];
+  updateStick(t.clientX - r.left, t.clientY - r.top);
+}, { passive: false });
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const r = canvas.getBoundingClientRect(), t = e.touches[0];
+  updateStick(t.clientX - r.left, t.clientY - r.top);
+}, { passive: false });
+canvas.addEventListener('touchend', () => releaseStick());
+
+drawJoystick();
+</script>

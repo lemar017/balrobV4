@@ -1,0 +1,18 @@
+// Fonction pour mettre à jour les champs texte avec les données JSON
+function updateFields(data) {
+  console.log(
+    "------------------------On passe dans updateFields---------------------"
+  );
+  document.getElementById("TAmin").value = data.TAmin;
+  document.getElementById("TAmax").value = data.TAmax;
+  document.getElementById("TAval").value = data.TAval;
+  document.getElementById("KPmin").value = data.KPmin;
+  document.getElementById("KPmax").value = data.KPmax;
+  document.getElementById("KPval").value = data.KPval;
+  document.getElementById("KImin").value = data.KImin;
+  document.getElementById("KImax").value = data.KImax;
+  document.getElementById("KIval").value = data.KIval;
+  document.getElementById("KDmin").value = data.KDmin;
+  document.getElementById("KDmax").value = data.KDmax;
+  document.getElementById("KDval").value = data.KDval;
+}
